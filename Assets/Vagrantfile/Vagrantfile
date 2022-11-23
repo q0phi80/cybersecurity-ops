@@ -129,7 +129,7 @@ end
 	
 	kali.vm.disk :disk, size: "50B", primary: true
 	
-	kali.vm.network "private_network", ip: '10.0.2.15'
+	kali.vm.network "private_network", ip: '10.0.2.200'
     
     kali.vm.provider "virtualbox" do |v|
       v.name = "Kali"
