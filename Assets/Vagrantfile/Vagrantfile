@@ -7,7 +7,7 @@ Vagrant.configure("2") do |config|
 	config.vm.define "win22" do |win22|
     # Base configuration for the VM and provisioner
     win22.vm.box = "gusztavvargadr/windows-server"
-    win22.vm.hostname = "win22"
+    win22.vm.hostname = "DC01"
     win22.vm.communicator = "winrm"
     config.winrm.timeout =   1800 # 30 minutes
 	config.vm.boot_timeout = 1800 # 30 minutes
@@ -16,7 +16,17 @@ Vagrant.configure("2") do |config|
 	
 	win22.vm.disk :disk, size: "40B", primary: true
 	
-	win22.vm.network "private_network", ip: '10.0.2.10'
+	# win22.vm.network "private_network", ip: '10.0.2.10'
+	win22.vm.network :private_network, ip: "192.168.40.2", gateway: "192.168.40.1", dns: "8.8.8.8"
+	
+	# Provision scripts
+	win22.vm.provision "shell", privileged: "true", powershell_elevated_interactive: "true", inline: <<-SHELL
+
+       Set-NetFirewallProfile -Profile Domain, Public, Private -Enabled False 
+	   Set-MpPreference -DisableRealtimeMonitoring $true
+	   Set-MpPreference -SubmitSamplesConsent NeverSend
+	   Set-MpPreference -MAPSReporting Disable
+	SHELL
 
     win22.vm.provider "libvirt" do |v|
       v.memory = 2048
@@ -35,7 +45,7 @@ Vagrant.configure("2") do |config|
     end
 
     win22.vm.provider "virtualbox" do |v|
-      v.name = "DC"
+      v.name = "DC01"
 	  v.memory = 2048
       v.cpus = 2
     end
@@ -44,7 +54,7 @@ end
 	config.vm.define "win10" do |win10|
 		#win10.gui = true
 		win10.vm.box = "gusztavvargadr/windows-10"
-		win10.vm.hostname = "win10"
+		win10.vm.hostname = "Windows10"
 		config.winrm.timeout =   1800 # 30 minutes
 		config.vm.boot_timeout = 1800 # 30 minutes
 		#win10.winrm.retry_limit = 600
@@ -52,8 +62,18 @@ end
 		
 		win10.vm.disk :disk, size: "40B", primary: true
 		
-		win10.vm.network "private_network", ip: '10.0.2.11'
-    
+		# win10.vm.network "private_network", ip: '10.0.2.11'
+		win10.vm.network :private_network, ip: "192.168.40.4", gateway: "192.168.40.1", dns: "8.8.8.8"
+		
+		# Provision scripts
+	win10.vm.provision "shell", privileged: "true", powershell_elevated_interactive: "true", inline: <<-SHELL
+
+       Set-NetFirewallProfile -Profile Domain, Public, Private -Enabled False 
+	   Set-MpPreference -DisableRealtimeMonitoring $true
+	   Set-MpPreference -SubmitSamplesConsent NeverSend
+	   Set-MpPreference -MAPSReporting Disable
+	SHELL
+		    
 	win10.vm.provider "virtualbox" do |v|
 		v.name = "Win10"
 		v.memory = 2048
@@ -64,13 +84,14 @@ end
   #config.vm.synced_folder '.', '/vagrant', disabled: true
   config.vm.define "ub1404" do |ub1404|
     ub1404.vm.box = "rapid7/metasploitable3-ub1404"
-    ub1404.vm.hostname = "met"
+    ub1404.vm.hostname = "Met"
     config.ssh.username = 'vagrant'
     config.ssh.password = 'vagrant'
 	
 	ub1404.vm.disk :disk, size: "25B", primary: true
 
-    ub1404.vm.network "private_network", ip: '10.0.2.100'
+    # ub1404.vm.network "private_network", ip: '10.0.2.100'
+	ub1404.vm.network :private_network, ip: "192.168.40.5", gateway: "192.168.40.1", dns: "8.8.8.8"
 
     ub1404.vm.provider "virtualbox" do |v|
       v.name = "Met"
@@ -88,7 +109,8 @@ end
 	
 	win2k8.vm.disk :disk, size: "40B", primary: true
 
-    win2k8.vm.network "private_network", ip: '10.0.2.101'
+    # win2k8.vm.network "private_network", ip: '10.0.2.101'
+	win2k8.vm.network :private_network, ip: "192.168.40.3", gateway: "192.168.40.1", dns: "8.8.8.8"
 
     win2k8.vm.provider "libvirt" do |v|
       v.name = "Win2k8"
@@ -108,13 +130,13 @@ end
     end
 
     # Configure Firewall to open up vulnerable services
-    case ENV['MS3_DIFFICULTY']
-      when 'easy'
-        win2k8.vm.provision :shell, inline: "C:\\startup\\disable_firewall.bat"
-      else
-        win2k8.vm.provision :shell, inline: "C:\\startup\\enable_firewall.bat"
-        win2k8.vm.provision :shell, inline: "C:\\startup\\configure_firewall.bat"
-    end
+    # case ENV['MS3_DIFFICULTY']
+      # when 'easy'
+        # win2k8.vm.provision :shell, inline: "C:\\startup\\disable_firewall.bat"
+      # else
+        # win2k8.vm.provision :shell, inline: "C:\\startup\\enable_firewall.bat"
+        # win2k8.vm.provision :shell, inline: "C:\\startup\\configure_firewall.bat"
+    # end
 
     # Insecure share from the Linux machine
     win2k8.vm.provision :shell, inline: "C:\\startup\\install_share_autorun.bat"
@@ -129,7 +151,8 @@ end
 	
 	kali.vm.disk :disk, size: "50B", primary: true
 	
-	kali.vm.network "private_network", ip: '10.0.2.200'
+	# kali.vm.network "private_network", ip: '10.0.2.200'
+	kali.vm.network :private_network, ip: "192.168.40.200", gateway: "192.168.40.1", dns: "8.8.8.8"
     
     kali.vm.provider "virtualbox" do |v|
       v.name = "Kali"
