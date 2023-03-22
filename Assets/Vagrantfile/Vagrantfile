@@ -25,12 +25,12 @@ Vagrant.configure("2") do |config|
 	# Provision scripts
 	win22.vm.provision "shell", privileged: "true", powershell_elevated_interactive: "true", inline: <<-SHELL
 
-       		Set-NetFirewallProfile -Profile Domain, Public, Private -Enabled False 
-	   	Set-MpPreference -DisableRealtimeMonitoring $true
-	   	Set-MpPreference -SubmitSamplesConsent NeverSend
-	   	Set-MpPreference -MAPSReporting Disable
-	   	Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-	   SHELL
+		Set-NetFirewallProfile -Profile Domain, Public, Private -Enabled False 
+		Set-MpPreference -DisableRealtimeMonitoring $true
+		Set-MpPreference -SubmitSamplesConsent NeverSend
+		Set-MpPreference -MAPSReporting Disable
+		
+	SHELL
 
     win22.vm.provider "libvirt" do |v|
       v.memory = 2048
@@ -74,10 +74,20 @@ end
 		# Provision scripts
 	win10.vm.provision "shell", privileged: "true", powershell_elevated_interactive: "true", inline: <<-SHELL
 
-       Set-NetFirewallProfile -Profile Domain, Public, Private -Enabled False 
-	   Set-MpPreference -DisableRealtimeMonitoring $true
-	   Set-MpPreference -SubmitSamplesConsent NeverSend
-	   Set-MpPreference -MAPSReporting Disable
+       		Set-NetFirewallProfile -Profile Domain, Public, Private -Enabled False 
+	   	Set-MpPreference -DisableRealtimeMonitoring $true
+	   	Set-MpPreference -SubmitSamplesConsent NeverSend
+	   	Set-MpPreference -MAPSReporting Disable
+	   
+	   # Install chocolatey
+		Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+		
+		# Start-Sleep -Seconds 5
+		# Set-ExecutionPolicy Bypass -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/q0phi80/cybersecurity-ops/main/Assets/Vagrantfile/scripts/Win10/Remove-PreInstalledApps.ps1'))
+		
+		# Start-Sleep -Seconds 5
+		# Set-ExecutionPolicy Bypass -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/q0phi80/cybersecurity-ops/main/Assets/Vagrantfile/scripts/Install-Toolz.ps1'))
+		
 	SHELL
 		    
 	win10.vm.provider "virtualbox" do |v|
