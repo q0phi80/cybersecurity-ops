@@ -100,16 +100,16 @@ end
   ###########################################
   #config.vm.synced_folder '.', '/vagrant', disabled: true
   config.vm.define "Ubuntu" do |ubuntu|
-    ub1404.vm.box = "gusztavvargadr/ubuntu-desktop-2004-lts-xfce"
-    ub1404.vm.hostname = "Ubuntu"
+    ubuntu.vm.box = "gusztavvargadr/ubuntu-desktop-2004-lts-xfce"
+    ubuntu.vm.hostname = "Ubuntu"
     config.ssh.username = 'vagrant'
     config.ssh.password = 'vagrant'
 	
-	ub1404.vm.disk :disk, size: "25B", primary: true
+	ubuntu.vm.disk :disk, size: "25B", primary: true
 
-	ub1404.vm.network :private_network, ip: "192.168.40.201", gateway: "192.168.40.1", dns: "8.8.8.8"
+	ubuntu.vm.network :private_network, ip: "192.168.40.8", gateway: "192.168.40.1", dns: "8.8.8.8"
 
-    ub1404.vm.provider "virtualbox" do |v|
+    ubuntu.vm.provider "virtualbox" do |v|
       v.name = "Ubuntu"
       v.memory = 1024
     end
