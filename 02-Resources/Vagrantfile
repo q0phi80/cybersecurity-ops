@@ -1,0 +1,108 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+$script = <<-'SCRIPT'
+wget http://archive.kali.org/archive-key.asc -O /etc/apt/trusted.gpg.d/kali-archive-key.asc
+echo "deb http://http.kali.org/kali kali-rolling main contrib non-free non-free-firmware" | sudo tee /etc/apt/sources.list
+DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' update
+DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' dist-upgrade
+DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' upgrade
+#DEBIAN_FRONTEND='noninteractive' apt install -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' zsh
+apt install zsh -y
+#DEBIAN_FRONTEND='noninteractive' apt-get install -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' kali-desktop-kde
+#DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' dist-upgrade
+#DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' upgrade
+#DEBIAN_FRONTEND=noninteractive
+reboot
+
+SCRIPT
+
+$script2 = <<-'SCRIPT'
+DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' update
+#DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' dist-upgrade
+DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' upgrade
+apt install docker.io -y
+sudo docker pull webgoat/webgoat-7.1
+sudo docker run -d -p 8080:8080 -t webgoat/webgoat-7.1
+SCRIPT
+
+$script3 = <<-'SCRIPT'
+Set-NetFirewallProfile -Profile Domain, Public, Private -Enabled False 
+Set-MpPreference -DisableRealtimeMonitoring $true
+Set-MpPreference -SubmitSamplesConsent NeverSend
+Set-MpPreference -MAPSReporting Disable
+# Install chocolatey
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+# Start-Sleep -Seconds 5
+Set-ExecutionPolicy Bypass -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/q0phi80/cybersecurity-ops/main/02-Resources/Vagrant/scripts/Win10/Remove-PreInstalledApps.ps1'))		
+# Start-Sleep -Seconds 5
+#Set-ExecutionPolicy Bypass -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/q0phi80/cybersecurity-ops/main/02-Resources/Vagrant/scripts/Install-Toolz.ps1'))
+		
+SCRIPT
+
+Vagrant.configure("2") do |config|
+
+  ## Kali
+  ######################################################
+  config.vm.synced_folder '.', '/vagrant', disabled: true
+  config.vm.define "Kali" do |kali|
+	kali.vm.box = "cybersecurity/kali-2020"
+	#kali.vm.box = "maroskukan/kali2204"
+	#kali.vm.box_version = "2022.12.21"
+    kali.vm.hostname = "Kali"
+    kali.vm.disk :disk, size: "50G", primary: true
+    kali.vm.network "private_network", ip:"172.20.26.10"
+	#kali.vm.provision "shell", inline: $script
+    kali.vm.provider "hyperv" do |v|
+        v.enable_virtualization_extensions = true
+        v.linked_clone = true
+        v.vmname = "Kali"
+        v.memory = 4096
+	  v.cpus = 2
+    end
+  end
+#end
+
+  ## Ubuntu 20.04 LTS DESKTOP
+  ######################################################
+  config.vm.synced_folder '.', '/vagrant', disabled: true
+  config.vm.define "Ubuntu" do |ub|
+	ub.vm.box = "gusztavvargadr/ubuntu-desktop-2004-lts-xfce"
+    ub.vm.hostname = "Ubuntu"
+    ub.vm.disk :disk, size: "25G", primary: true
+    ub.vm.network "private_network", ip:"172.20.26.11"
+	ub.vm.provision "shell", inline: $script2
+    ub.vm.provider "hyperv" do |v|
+        v.enable_virtualization_extensions = true
+        v.linked_clone = true
+        v.vmname = "Ubuntu"
+        v.memory = 2048
+		v.cpus = 2
+    end
+  end
+#end
+
+  ## WINDOWS 10
+  #########################################
+  config.vm.synced_folder '.', '/vagrant', disabled: true
+  config.vm.define "Win10" do |win10|
+  	win10.vm.box = "gusztavvargadr/windows-10"
+	win10.vm.hostname = "Windows10"
+	config.winrm.timeout =   1800 # 30 minutes
+	config.vm.boot_timeout = 1800 # 30 minutes
+	#win10.winrm.retry_limit = 600
+	#win10.winrm.retry_delay = 10
+	win10.vm.disk :disk, size: "40B", primary: true
+	win10.vm.network "private_network", ip:"172.20.26.12"
+	win10.vm.provider "hyperv" do |v|
+        v.enable_virtualization_extensions = true
+        v.linked_clone = true
+        v.vmname = "Windows 10"
+        v.memory = 2048
+		v.cpus = 2
+	
+	# Provision scripts
+	win10.vm.provision "shell", privileged: "true", powershell_elevated_interactive: "true", inline: $script3
+	end
+  end
+end
