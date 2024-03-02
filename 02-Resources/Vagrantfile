@@ -46,7 +46,8 @@ Vagrant.configure("2") do |config|
   ######################################################
   config.vm.synced_folder '.', '/vagrant', disabled: true
   config.vm.define "Kali" do |kali|
-	kali.vm.box = "cybersecurity/kali-2020"
+	kali.vm.box = "kalilinux/rolling"
+	#kali.vm.box = "cybersecurity/kali-2020"
 	#kali.vm.box = "maroskukan/kali2204"
 	#kali.vm.box_version = "2022.12.21"
     kali.vm.hostname = "Kali"
