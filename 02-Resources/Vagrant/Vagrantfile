@@ -83,10 +83,10 @@ end
 		Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 		
 		# Start-Sleep -Seconds 5
-		# Set-ExecutionPolicy Bypass -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/q0phi80/cybersecurity-ops/main/Assets/Vagrantfile/scripts/Win10/Remove-PreInstalledApps.ps1'))
+		# Set-ExecutionPolicy Bypass -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/q0phi80/cybersecurity-ops/main/02-Resources/Vagrant/scripts/Win10/Remove-PreInstalledApps.ps1'))
 		
 		# Start-Sleep -Seconds 5
-		# Set-ExecutionPolicy Bypass -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/q0phi80/cybersecurity-ops/main/Assets/Vagrantfile/scripts/Install-Toolz.ps1'))
+		# Set-ExecutionPolicy Bypass -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/q0phi80/cybersecurity-ops/main/02-Resources/Vagrant/scripts/Install-Toolz.ps1'))
 		
 	SHELL
 		    
