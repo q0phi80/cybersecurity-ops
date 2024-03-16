@@ -60,7 +60,7 @@ end
 	config.vm.define "win10" do |win10|
 		#win10.gui = true
 		win10.vm.box = "gusztavvargadr/windows-10"
-		win10.vm.hostname = "Windows10"
+		win10.vm.hostname = "Win10"
 		config.winrm.timeout =   1800 # 30 minutes
 		config.vm.boot_timeout = 1800 # 30 minutes
 		#win10.winrm.retry_limit = 600
