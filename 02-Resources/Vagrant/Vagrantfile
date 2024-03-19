@@ -7,20 +7,22 @@ Vagrant.configure("2") do |config|
 	## WINDOWS SERVER 2022
 	######################################
 	config.vm.synced_folder '.', '/vagrant', disabled: true
-	config.vm.define "win22" do |win22|
+	config.vm.define "DC01" do |win22|
     # Base configuration for the VM and provisioner
     win22.vm.box = "gusztavvargadr/windows-server"
     win22.vm.hostname = "DC01"
     win22.vm.communicator = "winrm"
-    config.winrm.timeout =   1800 # 30 minutes
-	config.vm.boot_timeout = 1800 # 30 minutes
+	#config.winrm.shell = "powershell"
+	win22.winrm.timeout =   1800 # 30 minutes
+	win22.vm.boot_timeout = 1800 # 30 minutes
 	#win22.winrm.retry_limit = 600
     #win22.winrm.retry_delay = 10
 	
-	win22.vm.disk :disk, size: "40B", primary: true
+	win22.vm.disk :disk, size: "40GB", primary: true
 	
-	# win22.vm.network "private_network", ip: '10.0.2.10'
-	win22.vm.network :private_network, ip: "192.168.40.2", gateway: "192.168.40.1", dns: "8.8.8.8"
+	#win22.vm.network "public_network", use_dhcp_assigned_default_route: true
+	DC01IP = "192.168.40.2"
+	win22.vm.network "private_network", ip: DC01IP
 	
 	# Provision scripts
 	win22.vm.provision "shell", privileged: "true", powershell_elevated_interactive: "true", inline: <<-SHELL
@@ -57,36 +59,40 @@ end
 
 	## WINDOWS 10
 	#########################################
-	config.vm.define "win10" do |win10|
+	config.vm.define "Win10" do |win10|
 		#win10.gui = true
 		win10.vm.box = "gusztavvargadr/windows-10"
 		win10.vm.hostname = "Win10"
-		config.winrm.timeout =   1800 # 30 minutes
-		config.vm.boot_timeout = 1800 # 30 minutes
+		# config.winrm.shell = "powershell"
+		win10.winrm.timeout =   1800 # 30 minutes
+		win10.vm.boot_timeout = 1800 # 30 minutes
+		#config.winrm.max_tries = 300 # 
+		#config.winrm.retry_delay = 2
 		#win10.winrm.retry_limit = 600
 		#win10.winrm.retry_delay = 10
 		
-		win10.vm.disk :disk, size: "40B", primary: true
+		win10.vm.disk :disk, size: "40GB", primary: true
 		
-		# win10.vm.network "private_network", ip: '10.0.2.11'
-		win10.vm.network :private_network, ip: "192.168.40.4", gateway: "192.168.40.1", dns: "8.8.8.8"
+		Win10IP = "192.168.40.4"
+		win10.vm.network "private_network", ip: Win10IP
+		win10.vm.network "public_network", use_dhcp_assigned_default_route: true
 		
 		# Provision scripts
-	win10.vm.provision "shell", privileged: "true", powershell_elevated_interactive: "true", inline: <<-SHELL
+		win10.vm.provision "shell", privileged: "true", powershell_elevated_interactive: "true", inline: <<-SHELL
 
-       		Set-NetFirewallProfile -Profile Domain, Public, Private -Enabled False 
+       	Set-NetFirewallProfile -Profile Domain, Public, Private -Enabled False 
 	   	Set-MpPreference -DisableRealtimeMonitoring $true
 	   	Set-MpPreference -SubmitSamplesConsent NeverSend
 	   	Set-MpPreference -MAPSReporting Disable
 	   
-	   # Install chocolatey
+	    # Install chocolatey
 		Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 		
-		# Start-Sleep -Seconds 5
-		# Set-ExecutionPolicy Bypass -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/q0phi80/cybersecurity-ops/main/02-Resources/Vagrant/scripts/Win10/Remove-PreInstalledApps.ps1'))
+		Start-Sleep -Seconds 5
+		Set-ExecutionPolicy Bypass -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/q0phi80/cybersecurity-ops/main/02-Resources/Vagrant/scripts/Win10/Remove-PreInstalledApps.ps1'))
 		
-		# Start-Sleep -Seconds 5
-		# Set-ExecutionPolicy Bypass -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/q0phi80/cybersecurity-ops/main/02-Resources/Vagrant/scripts/Install-Toolz.ps1'))
+		Start-Sleep -Seconds 5
+		Set-ExecutionPolicy Bypass -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/q0phi80/cybersecurity-ops/main/02-Resources/Vagrant/scripts/Install-Toolz.ps1'))
 		
 	SHELL
 		    
@@ -102,12 +108,15 @@ end
   config.vm.define "Ubuntu" do |ubuntu|
     ubuntu.vm.box = "gusztavvargadr/ubuntu-desktop-2004-lts-xfce"
     ubuntu.vm.hostname = "Ubuntu"
-    config.ssh.username = 'vagrant'
-    config.ssh.password = 'vagrant'
+    ubuntu.ssh.username = 'vagrant'
+    ubuntu.ssh.password = 'vagrant'
 	
-	ubuntu.vm.disk :disk, size: "25B", primary: true
+	ubuntu.vm.disk :disk, size: "25GB", primary: true
 
-	ubuntu.vm.network :private_network, ip: "192.168.40.8", gateway: "192.168.40.1", dns: "8.8.8.8"
+	#ubuntu.vm.network :private_network, ip: "192.168.40.8", gateway: "192.168.40.1", dns: "8.8.8.8"
+	#ubuntu.vm.network "public_network", use_dhcp_assigned_default_route: true
+	UbuntuIP = "192.168.40.5"
+	ubuntu.vm.network "private_network", ip: UbuntuIP
 
     ubuntu.vm.provider "virtualbox" do |v|
       v.name = "Ubuntu"
@@ -118,33 +127,39 @@ end
   ## METASPLOITABLE 3 UBUNTU
   ###########################################
   #config.vm.synced_folder '.', '/vagrant', disabled: true
-  config.vm.define "ub1404" do |ub1404|
-    ub1404.vm.box = "rapid7/metasploitable3-ub1404"
-    ub1404.vm.hostname = "Met"
-    config.ssh.username = 'vagrant'
-    config.ssh.password = 'vagrant'
+  config.vm.define "Met3" do |met3|
+    met3.vm.box = "rapid7/metasploitable3-ub1404"
+    met3.vm.hostname = "Met3"
+    met3.ssh.username = 'vagrant'
+    met3.ssh.password = 'vagrant'
 	
-	ub1404.vm.disk :disk, size: "25B", primary: true
+	met3.vm.disk :disk, size: "25GB", primary: true
 
-	ub1404.vm.network :private_network, ip: "192.168.40.5", gateway: "192.168.40.1", dns: "8.8.8.8"
+	#ub1404.vm.network :private_network, ip: "192.168.40.5", gateway: "192.168.40.1", dns: "8.8.8.8"
+	#met3.vm.network "public_network", use_dhcp_assigned_default_route: true
+	Met3IP = "192.168.40.6"
+	met3.vm.network "private_network", ip: Met3IP
 
-    ub1404.vm.provider "virtualbox" do |v|
-      v.name = "Met"
+    met3.vm.provider "virtualbox" do |v|
+      v.name = "Met3"
       v.memory = 1024
     end
   end
 
   ## METASPLOITABLE 2
   #config.vm.synced_folder '.', '/vagrant', disabled: true
-  config.vm.define "met2" do |met2|
+  config.vm.define "Met2" do |met2|
     met2.vm.box = "e314c/Metasploitable2"
     met2.vm.hostname = "Met2"
-    config.ssh.username = 'vagrant'
-    config.ssh.password = 'vagrant'
+    met2.ssh.username = 'vagrant'
+    met2.ssh.password = 'vagrant'
 	
-	met2.vm.disk :disk, size: "25B", primary: true
+	met2.vm.disk :disk, size: "25GB", primary: true
 
-	met2.vm.network :private_network, ip: "192.168.40.6", gateway: "192.168.40.1", dns: "8.8.8.8"
+	#met2.vm.network :private_network, ip: "192.168.40.6", gateway: "192.168.40.1", dns: "8.8.8.8"
+	#met2.vm.network "public_network", use_dhcp_assigned_default_route: true
+	Met2IP = "192.168.40.7"
+	met2.vm.network "private_network", ip: Met2IP
 
     met2.vm.provider "virtualbox" do |v|
       v.name = "Met2"
@@ -154,7 +169,7 @@ end
 
   ## METASPLOITABLE 3 WINDOWS 2k8
   #####################################
-  config.vm.define "win2k8" do |win2k8|
+  config.vm.define "Win2k8" do |win2k8|
     # Base configuration for the VM and provisioner
     win2k8.vm.box = "rapid7/metasploitable3-win2k8"
     win2k8.vm.hostname = "Win2k8"
@@ -162,13 +177,17 @@ end
     win2k8.winrm.retry_limit = 60
     win2k8.winrm.retry_delay = 10
 	
-	win2k8.vm.disk :disk, size: "40B", primary: true
+	win2k8.vm.disk :disk, size: "40GB", primary: true
 
-    # win2k8.vm.network "private_network", ip: '10.0.2.101'
-	win2k8.vm.network :private_network, ip: "192.168.40.3", gateway: "192.168.40.1", dns: "8.8.8.8"
+    #win2k8.vm.network "private_network", ip: '10.0.2.101'
+	#win2k8.vm.network :private_network, ip: "192.168.40.3", gateway: "192.168.40.1", dns: "8.8.8.8"
+	#win2k8.vm.network "public_network", use_dhcp_assigned_default_route: true
+	Win2k8IP = "192.168.40.8"
+	win2k8.vm.network "private_network", ip: Win2k8IP
 
     win2k8.vm.provider "libvirt" do |v|
-      v.name = "Win2k8"
+	# win2k8.vm.provider "virtualbox" do |v|
+      #v.name = "Win2k8"
 	  v.memory = 2048
       v.cpus = 2
       v.video_type = 'qxl'
@@ -183,6 +202,12 @@ end
       v.hyperv_feature :name => 'vapic',   :state => 'on'
       v.hyperv_feature :name => 'synic',   :state => 'on'
     end
+	
+	win2k8.vm.provider "virtualbox" do |v|
+      v.name = "Win2k8"
+	  v.memory = 2048
+      v.cpus = 2
+    end
 
     # Insecure share from the Linux machine
     win2k8.vm.provision :shell, inline: "C:\\startup\\install_share_autorun.bat"
@@ -192,15 +217,18 @@ end
   
   ## Kali
   ######################################################
-  #config.vm.synced_folder '.', '/vagrant', disabled: true
+  # config.vm.synced_folder '.', '/vagrant', disabled: true
   config.vm.define "Kali" do |kali|
     kali.vm.box = "kalilinux/rolling"
     kali.vm.hostname = "Kali"
 	
-	kali.vm.disk :disk, size: "50B", primary: true
+	#kali.vm.disk :disk, size: "40GB", primary: true
 	
 	# kali.vm.network "private_network", ip: '10.0.2.200'
-	kali.vm.network :private_network, ip: "192.168.40.200", gateway: "192.168.40.1", dns: "8.8.8.8"
+	# kali.vm.network :private_network, ip: "192.168.40.200", gateway: "192.168.40.1", dns: "8.8.8.8"
+	KaliIP = "192.168.40.200"
+	kali.vm.network "private_network", ip: KaliIP
+	kali.vm.network "public_network", use_dhcp_assigned_default_route: true
     
     kali.vm.provider "virtualbox" do |v|
       v.name = "Kali"
